@@ -1,41 +1,85 @@
-# Small Robot dog (quadruped)
+# Modern IK System for QQ-Doggo
 
-## Disclaimer
-**This project has been done mostly for fun about a year ago. Some libraries have been updated, so it basically does not work any more. Not every planned feature was released. No PCB is made and it creates a lot of trouble for most of you. I'm sorry to say, but I'm not going to provide any support for it any more. It's exhausting and sometimes just destroys any intentions to continue. This is not comercial project and I'm not going to do something like Donation. Maybe I'm disappointing someone. Sorry. Project closed.** 
+A completely refactored and modernized inverse kinematics system for the QQ-doggo quadruped robot with Switch Pro controller integration via BluePad.
 
-![Small robot dog](https://github.com/SovGVD/esp32-robot-dog-code/blob/master/assets/img/small.jpg?raw=true)
+## Features
 
-## Hardware
-- ESP32
-- IMU (not implemented)
-- 12 servos TowerPro mg90d
-- Two 18650
+### Core Functionality
+- **3D Inverse Kinematics**: Analytic IK solver for 3-DOF legs with full 3D positioning
+- **Quadruped Locomotion**: Trotting gait with configurable speed and stride
+- **3D Body Rotation**: Full support for yaw, pitch, and roll rotations
+- **Walking Control**: Forward, backward, strafe, and turning via controller
+- **Real-time Updates**: 60Hz gait computation and servo control
 
-## Software
-- Arduino IDE compatible
+### Controller Integration
+- **BluePad32 Support**: Full Switch Pro controller compatibility
+- **Analog Stick Control**: Left stick for movement (vx, vy), right stick for rotation
+- **Trigger Control**: Height adjustment via L/R triggers
+- **Button Mapping**: All standard gamepad buttons supported
+- **Deadzone Handling**: Configurable stick deadzone with automatic scaling
 
-## TODO
-- [ ] use power sensor and IMU
+### Hardware Support
+- **ESP32 Compatible**: Arduino IDE compatible firmware
+- **12 Servos**: 3-DOF per leg (Alpha, Beta, Gamma)
+- **TowerPro mg90d Servos**: Optimized for standard servo library
+- **Flexible Kinematics**: Configurable segment lengths for different builds
 
-## How to
-### Calibrate servos (create `servoMainProfile`)
-- Print servo_calib tool and install servo into it: circle plate with dots, 10deg each from 0 to 180.
-- use tools/servoCalib.ino and connect servo to 14 pin
-- open Arduino IDE terminal and input `1500` (and press Enter) - this should be servo middle and it should point to the middle dot of printed tool
-- decrease value to find `minAngle` and `degMin` values for it (start with `800` and decrease it until servo stop move, than return back one step, e.g. set 790 - servo moved, 780 - servo moved, 760 - servo don't move, use 780)
-- do the same to find `maxAngle` and `degMax` but make value and start from 2100 and increase values
-- great, now we know our servo limits (or at least what are the limits for lib+servo), time to find more accurate servo positions
-- input values until you will not find proper positions for deg30, deg50...deg130, deg150
+## Architecture
 
-### Legs
-#### Assembling
-- to assembly legs correctly print leg_calib tool/template one as it is and one mirrored for the other side of robot for Beta and Gamma angles, as also Alpha angle tool
-- power up servo and connect ESP32 to you computer, open Arduino IDE terminal
-- input `set servo_to_calib` to set all servo to position expected for printer tool
-- assemble legs as closer as possible to expected leg parts positions according to the tool (90deg, 45deg, 90deg)
+### Header Files
 
-#### Calibration
-- repeat steps 2,3 of Legs->Assembling instruction
-- input `set help` to see the list of available commands, we are interested in `XX_HAL_trim_xxxx`, e.g. `LF_HAL_trim_alpha`, where `LF` - left front leg, and `alpha` is the angle name
-- put Alpha leg tool on top of the robot legs servo, surface of tool should be (near)perfectly align with servos body, if not, use `XX_HAL_trim_alpha value_in_deg` command to set servo trim value, e.g. `set LF_HAL_trim_alpha -3`, it should not be too big, in other cases you need to repeat `Assemble` step
-- using tool for Beta and Gamma angles, calibrate/trim other servos
+#### Vector3.h
+3D vector mathematics library with standard operations:
+- Vector addition, subtraction, scaling
+- Dot product, cross product
+- Magnitude, normalization, distance
+
+#### IKSolver.h
+Inverse kinematics solver featuring:
+- `LegJoints` struct for angle representation
+- `LegIK` class with analytic solving
+- Angle limits and reach validation
+- Law of cosines-based computation
+
+#### LegController.h
+Quadruped locomotion controller:
+- Trotting gait generation
+- Body pose management (position + rotation)
+- Individual leg IK solving
+- Walking, turning, standing commands
+
+#### BluePadController.h
+Switch Pro controller interface:
+- `GamepadInput` struct for button/stick states
+- Analog stick deadzone handling
+- Trigger-based height adjustment
+- Button state tracking
+
+## Usage
+
+### Basic Walking Example
+```cpp
+LegController robot;
+BluePadController gamepad;
+
+robot.init();
+gamepad.init();
+
+while(true) {
+    gamepad.update();
+    
+    float vx, vy;
+    gamepad.getWalkingVelocity(vx, vy);
+    float omega = gamepad.getRotationSpeed();
+    float height = -120.0f + gamepad.getHeightAdjustment();
+    
+    robot.walk(vx, vy, omega, height);
+    
+    // Get servo angles
+    for(int i = 0; i < 4; ++i) {
+        LegJoints angles = robot.getLegAngles((LegPosition)i);
+        // Write to servo PWM
+    }
+    
+    delay(16); // ~60Hz
+}
