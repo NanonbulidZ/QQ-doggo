@@ -87,7 +87,7 @@ void LegController::setBodyRotation(float roll, float pitch, float yaw) {
 
 void LegController::updateWalking(float vx, float vy, float vYaw, float deltaTime) {
     // Update gait phase
-    updateGaitPhase(deltaTime);
+    updateGaitPhase(deltaTime, vx, vy, vYaw);
     
     // Update each leg based on its phase
     for (int leg = 0; leg < 4; leg++) {
@@ -111,7 +111,7 @@ void LegController::updateWalking(float vx, float vy, float vYaw, float deltaTim
     }
 }
 
-void LegController::updateGaitPhase(float deltaTime) {
+void LegController::updateGaitPhase(float deltaTime, float vx, float vy, float vYaw) {
     // Advance gait phase
     gaitPhase += gaitFrequency * gaitSpeed * deltaTime;
     

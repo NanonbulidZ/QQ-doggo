@@ -115,7 +115,7 @@ private:
     /**
      * Update gait phase and determine which legs are in swing/stance
      */
-    void updateGaitPhase(float deltaTime);
+    void updateGaitPhase(float deltaTime, float vx, float vy, float vYaw);
 
     /**
      * Calculate foot position during stance phase
