@@ -71,11 +71,11 @@ void BluePadController::update() {
 }
 
 void BluePadController::getWalkingVelocity(float& vx, float& vy) const {
-    // Left stick controls walking
-    // Y-axis: forward/backward
-    // X-axis: left/right strafe
-    vx = input.leftY;   // Forward is positive Y
-    vy = -input.leftX;  // Right is negative X (inverted for body frame)
+    // Left stick controls walking (mapped to body frame: +X forward, +Y left)
+    // Stick Y-axis: forward/backward  -> vx (forward, +X)
+    // Stick X-axis: right/left strafe -> vy (left, +Y; sign inverted)
+    vx = input.leftY;   // Forward velocity in +X (from stick Y)
+    vy = -input.leftX;  // Leftward velocity in +Y (from stick X, inverted)
 }
 
 float BluePadController::getRotationSpeed() const {
