@@ -41,7 +41,7 @@ public:
     // Constructor with segment lengths
     LegIK(float coxa = 24.0f, float femur = 51.9f, float tibia = 50.0f) 
         : coxaLength(coxa), femurLength(femur), tibiaLength(tibia),
-          alphaMin(0), alphaMax(M_PI),
+          alphaMin(-M_PI), alphaMax(M_PI),
           betaMin(0), betaMax(M_PI),
           gammaMin(0), gammaMax(M_PI) {}
 
