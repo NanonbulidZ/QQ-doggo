@@ -30,6 +30,9 @@ public:
 
     // Scalar division
     Vector3 operator/(float scalar) const {
+        if (scalar == 0.0f) {
+            return Vector3(0, 0, 0);
+        }
         return Vector3(x / scalar, y / scalar, z / scalar);
     }
 
@@ -56,9 +59,11 @@ public:
     }
 
     Vector3& operator/=(float scalar) {
-        x /= scalar;
-        y /= scalar;
-        z /= scalar;
+        if (scalar != 0.0f) {
+            x /= scalar;
+            y /= scalar;
+            z /= scalar;
+        }
         return *this;
     }
 
