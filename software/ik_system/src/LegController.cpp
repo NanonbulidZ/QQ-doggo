@@ -29,24 +29,24 @@ LegController::LegController(float length, float width)
     legPhases[LEG_BACK_RIGHT] = PHASE_STANCE;
     
     // Initialize previous phases
-    for (int i = 0; i < 4; i++) {
-        prevLegPhases[i] = legPhases[i];
+    for (LegPosition leg = LEG_FRONT_LEFT; leg <= LEG_BACK_RIGHT; leg = static_cast<LegPosition>(leg + 1)) {
+        prevLegPhases[leg] = legPhases[leg];
     }
 }
 
 void LegController::init(float coxaLen, float femurLen, float tibiaLen) {
     // Initialize all leg IK solvers with same dimensions
-    for (int i = 0; i < 4; i++) {
-        legIK[i] = LegIK(coxaLen, femurLen, tibiaLen);
-        legIK[i].setAngleLimits(0, M_PI, 0, M_PI, 0, M_PI);
+    for (LegPosition leg = LEG_FRONT_LEFT; leg <= LEG_BACK_RIGHT; leg = static_cast<LegPosition>(leg + 1)) {
+        legIK[leg] = LegIK(coxaLen, femurLen, tibiaLen);
+        legIK[leg].setAngleLimits(0, M_PI, 0, M_PI, 0, M_PI);
     }
     
     // Set up default foot positions
     initDefaultStance();
     
     // Initialize current foot positions to default
-    for (int i = 0; i < 4; i++) {
-        footPositions[i] = defaultFootPositions[i];
+    for (LegPosition leg = LEG_FRONT_LEFT; leg <= LEG_BACK_RIGHT; leg = static_cast<LegPosition>(leg + 1)) {
+        footPositions[leg] = defaultFootPositions[leg];
     }
 }
 
