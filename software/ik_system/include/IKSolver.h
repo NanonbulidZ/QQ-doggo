@@ -59,8 +59,9 @@ public:
      * @return true if solution is valid, false if unreachable
      */
     bool solve(const Vector3& target, LegJoints& result) {
-        // Project onto XZ plane for alpha (shoulder rotation)
-        float r_xz = sqrtf(target.x * target.x + target.z * target.z);
+        // Project onto XY plane for alpha (shoulder rotation around Z-axis)
+        // Note: Z is vertical (up/down), XY is horizontal plane
+        float r_xy = sqrtf(target.x * target.x + target.y * target.y);
         
         // Check if target is reachable (simplified check)
         float maxReach = coxaLength + femurLength + tibiaLength;
@@ -69,40 +70,35 @@ public:
             return false; // Too far
         }
 
-        // Alpha: shoulder rotation (atan2 in XZ plane)
-        // Adjust for coxa offset
-        if (r_xz < 0.0001f) {
-            result.alpha = 0;
-        } else {
-            result.alpha = atan2f(target.z, target.x) - atan2f(coxaLength, 0);
-        }
+        // Alpha: shoulder rotation (atan2 in XY plane, rotates around Z-axis)
+        result.alpha = atan2f(target.y, target.x);
 
-        // Distance from shoulder joint to target in XZ plane (after alpha rotation)
-        float d_xz = r_xz - coxaLength;
+        // Distance from shoulder joint to target in XY plane (after accounting for coxa)
+        float d_xy = r_xy - coxaLength;
+        if (d_xy < 0) d_xy = 0;  // Clamp to prevent negative distance
         
-        // 3D distance from elbow to target
-        float d = sqrtf(d_xz * d_xz + target.y * target.y);
+        // 3D distance from elbow to target (using vertical Z and horizontal d_xy)
+        float d = sqrtf(d_xy * d_xy + target.z * target.z);
 
         // Check if within femur+tibia reach
         if (d > (femurLength + tibiaLength) * ELBOW_REACH_SAFETY || d < fabs(femurLength - tibiaLength)) {
             return false; // Unreachable
         }
 
-        // Beta: elbow angle using law of cosines
-        // Angle between femur and the line to target
+        // Gamma: ankle angle using law of cosines (angle between femur and tibia)
         float cosGamma = (femurLength * femurLength + tibiaLength * tibiaLength - d * d) 
                        / (2.0f * femurLength * tibiaLength);
         cosGamma = constrain(cosGamma, -1.0f, 1.0f);
         result.gamma = acosf(cosGamma);
 
-        // Beta calculation with elevation angle
+        // Beta: elbow angle using law of cosines
         float cosBeta = (femurLength * femurLength + d * d - tibiaLength * tibiaLength) 
                       / (2.0f * femurLength * d);
         cosBeta = constrain(cosBeta, -1.0f, 1.0f);
         float beta_temp = acosf(cosBeta);
         
-        // Elevation angle to target
-        float elevation = atan2f(target.y, d_xz);
+        // Elevation angle to target (using Z as vertical)
+        float elevation = atan2f(target.z, d_xy);
         result.beta = elevation + beta_temp;
 
         // Validate angle limits

@@ -48,6 +48,9 @@ const float HEIGHT_MIN = -150.0f;   // Lowest body position (legs most extended)
 const float HEIGHT_MAX = -80.0f;    // Highest body position (legs most compressed)
 const float HEIGHT_DEFAULT = -120.0f; // Default standing height
 
+// Motion detection threshold
+const float MOTION_THRESHOLD = 0.01f; // Minimum stick input to trigger walking
+
 // Servo calibration (adjust for your servos)
 const int SERVO_MIN_PULSE = 500;   // microseconds
 const int SERVO_MAX_PULSE = 2500;  // microseconds
@@ -155,7 +158,12 @@ void setup() {
 void loop() {
     static unsigned long lastUpdate = 0;
     unsigned long currentTime = millis();
-    float deltaTime = (currentTime - lastUpdate) / 1000.0f;  // Convert to seconds
+    
+    // Prevent large deltaTime on first iteration
+    float deltaTime = 0.0f;
+    if (lastUpdate != 0) {
+        deltaTime = (currentTime - lastUpdate) / 1000.0f;  // Convert to seconds
+    }
     lastUpdate = currentTime;
     
     // Update controller state
@@ -213,7 +221,7 @@ void loop() {
     robot.setBodyRotation(roll, pitch, yaw);
     
     // Update walking motion
-    if (fabs(vx) > 0.01f || fabs(vy) > 0.01f || fabs(vYaw) > 0.01f) {
+    if (fabs(vx) > MOTION_THRESHOLD || fabs(vy) > MOTION_THRESHOLD || fabs(vYaw) > MOTION_THRESHOLD) {
         // Walking mode
         robot.updateWalking(vx, vy, vYaw, deltaTime);
     } else {

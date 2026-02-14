@@ -211,9 +211,8 @@ Vector3 LegController::calcSwingFootPos(LegPosition leg, float swingProgress) {
 }
 
 void LegController::stand() {
-    // Reset to default stance
+    // Reset to default stance (preserve gait speed for resumption)
     gaitPhase = 0;
-    gaitSpeed = 0;
     
     for (int i = 0; i < 4; i++) {
         footPositions[i] = defaultFootPositions[i];

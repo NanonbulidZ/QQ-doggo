@@ -11,6 +11,7 @@ BluePadController* BluePadController::instance = nullptr;
 // Controller input value ranges
 static constexpr float STICK_MAX_VALUE = 512.0f;    // Analog stick maximum raw value
 static constexpr float TRIGGER_MAX_VALUE = 1023.0f; // Trigger maximum raw value
+static constexpr float HEIGHT_ADJUSTMENT_RATE_MM_PER_SEC = 50.0f; // Height adjustment rate from triggers
 
 void BluePadController::init() {
     // Store singleton instance for callbacks
@@ -19,7 +20,7 @@ void BluePadController::init() {
     // Initialize BluePad32 library
     BP32.setup(&onConnectedController, &onDisconnectedController);
     
-    // Enable virtual devices (for multiple controllers)
+    // Disable virtual devices (using only physical controllers)
     BP32.enableVirtualDevice(false);
 }
 
@@ -84,8 +85,8 @@ float BluePadController::getRotationSpeed() const {
 
 float BluePadController::getHeightAdjustment() const {
     // Triggers control height: L2 lowers, R2 raises
-    // Return in mm units
-    float delta = (input.rightTrigger - input.leftTrigger) * 50.0f;
+    // Return rate in mm/s units
+    float delta = (input.rightTrigger - input.leftTrigger) * HEIGHT_ADJUSTMENT_RATE_MM_PER_SEC;
     return delta;
 }
 
@@ -104,7 +105,15 @@ float BluePadController::applyDeadzone(float value, float deadzone) const {
     // Scale remaining range to full output
     float sign = (value > 0) ? 1.0f : -1.0f;
     float scaled = (fabs(value) - deadzone) / (1.0f - deadzone);
-    return sign * scaled;
+    
+    // Clamp output to [-1, 1] to keep downstream gait math bounded
+    float output = sign * scaled;
+    if (output > 1.0f) {
+        output = 1.0f;
+    } else if (output < -1.0f) {
+        output = -1.0f;
+    }
+    return output;
 }
 
 // Static callback for controller connection
