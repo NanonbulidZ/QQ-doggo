@@ -10,12 +10,16 @@ static constexpr float YAW_EFFECT_SCALE = 0.5f;      // Scaling for yaw rotation
 static constexpr float SWING_STRIDE_SCALE = 0.5f;    // Stride scaling for swing target
 static constexpr float PARABOLA_SCALE = 4.0f;        // Parabola scaling (peaks at stepHeight when progress=0.5)
 
+// Default stance configuration
+static constexpr float DEFAULT_FOOT_OFFSET = 40.0f;  // Horizontal offset from body to foot (mm)
+static constexpr float DEFAULT_GROUND_HEIGHT = -120.0f; // Default ground level Z position (mm, negative = below body)
+
 // Constructor
 LegController::LegController(float length, float width) 
     : bodyLength(length), bodyWidth(width),
       strideLength(60.0f), stepHeight(30.0f), 
       gaitSpeed(0.5f), gaitFrequency(1.0f),
-      bodyPosition(0, 0, -120.0f), bodyRotation(0, 0, 0),
+      bodyPosition(0, 0, DEFAULT_GROUND_HEIGHT), bodyRotation(0, 0, 0),
       gaitPhase(0) {
     
     // Initialize leg phases (trot gait: diagonals move together)
@@ -54,30 +58,30 @@ void LegController::initDefaultStance() {
     
     // Front left
     defaultFootPositions[LEG_FRONT_LEFT].set(
-        halfLength + 40.0f,   // x: forward
-        halfWidth + 40.0f,    // y: left
-        -120.0f               // z: down (ground level)
+        halfLength + DEFAULT_FOOT_OFFSET,   // x: forward
+        halfWidth + DEFAULT_FOOT_OFFSET,    // y: left
+        DEFAULT_GROUND_HEIGHT               // z: down (ground level)
     );
     
     // Front right
     defaultFootPositions[LEG_FRONT_RIGHT].set(
-        halfLength + 40.0f,   // x: forward
-        -halfWidth - 40.0f,   // y: right
-        -120.0f               // z: down
+        halfLength + DEFAULT_FOOT_OFFSET,   // x: forward
+        -halfWidth - DEFAULT_FOOT_OFFSET,   // y: right
+        DEFAULT_GROUND_HEIGHT               // z: down
     );
     
     // Back left
     defaultFootPositions[LEG_BACK_LEFT].set(
-        -halfLength - 40.0f,  // x: backward
-        halfWidth + 40.0f,    // y: left
-        -120.0f               // z: down
+        -halfLength - DEFAULT_FOOT_OFFSET,  // x: backward
+        halfWidth + DEFAULT_FOOT_OFFSET,    // y: left
+        DEFAULT_GROUND_HEIGHT               // z: down
     );
     
     // Back right
     defaultFootPositions[LEG_BACK_RIGHT].set(
-        -halfLength - 40.0f,  // x: backward
-        -halfWidth - 40.0f,   // y: right
-        -120.0f               // z: down
+        -halfLength - DEFAULT_FOOT_OFFSET,  // x: backward
+        -halfWidth - DEFAULT_FOOT_OFFSET,   // y: right
+        DEFAULT_GROUND_HEIGHT               // z: down
     );
 }
 

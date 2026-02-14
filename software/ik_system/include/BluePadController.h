@@ -99,9 +99,9 @@ public:
     float getRotationSpeed() const;
 
     /**
-     * Get height adjustment from triggers
+     * Get height adjustment rate from triggers
      * L2 = lower, R2 = raise
-     * @return Height delta in mm (-50 to 50)
+     * @return Height adjustment rate in mm/s (-50 to 50)
      */
     float getHeightAdjustment() const;
 
