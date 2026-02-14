@@ -108,12 +108,7 @@ float BluePadController::applyDeadzone(float value, float deadzone) const {
     
     // Clamp output to [-1, 1] to keep downstream gait math bounded
     float output = sign * scaled;
-    if (output > 1.0f) {
-        output = 1.0f;
-    } else if (output < -1.0f) {
-        output = -1.0f;
-    }
-    return output;
+    return constrain(output, -1.0f, 1.0f);
 }
 
 // Static callback for controller connection

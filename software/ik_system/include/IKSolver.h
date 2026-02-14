@@ -74,8 +74,11 @@ public:
         result.alpha = atan2f(target.y, target.x);
 
         // Distance from shoulder joint to target in XY plane (after accounting for coxa)
+        // Coxa extends horizontally from body, so subtract its length from planar distance
         float d_xy = r_xy - coxaLength;
-        if (d_xy < 0) d_xy = 0;  // Clamp to prevent negative distance
+        // Clamp to zero if target is within coxa radius (very close to body)
+        // This handles edge cases where foot is positioned near body center
+        if (d_xy < 0) d_xy = 0;
         
         // 3D distance from elbow to target (using vertical Z and horizontal d_xy)
         float d = sqrtf(d_xy * d_xy + target.z * target.z);
