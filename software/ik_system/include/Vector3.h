@@ -1,29 +1,36 @@
-// 3D vector mathematics library
-// Modern C++ implementation with complete vector operations
+/**
+ * Vector3.h
+ * 3D vector mathematics library for inverse kinematics
+ * 
+ * Provides essential vector operations for 3D robotics calculations
+ */
 
 #pragma once
 
-#include <cmath>
+#include <math.h>
 
 class Vector3 {
 public:
     float x, y, z;
 
+    // Epsilon for floating point comparisons
+    static constexpr float EPSILON = 0.0001f;
+
     // Constructors
     Vector3() : x(0), y(0), z(0) {}
     Vector3(float x, float y, float z) : x(x), y(y), z(z) {}
 
-    // Addition
+    // Vector addition
     Vector3 operator+(const Vector3& v) const {
         return Vector3(x + v.x, y + v.y, z + v.z);
     }
 
-    // Subtraction
+    // Vector subtraction
     Vector3 operator-(const Vector3& v) const {
         return Vector3(x - v.x, y - v.y, z - v.z);
     }
 
-    // Scalar multiplication (scaling)
+    // Scalar multiplication
     Vector3 operator*(float scalar) const {
         return Vector3(x * scalar, y * scalar, z * scalar);
     }
@@ -38,47 +45,18 @@ public:
 
     // Compound assignment operators
     Vector3& operator+=(const Vector3& v) {
-        x += v.x;
-        y += v.y;
-        z += v.z;
+        x += v.x; y += v.y; z += v.z;
         return *this;
     }
 
     Vector3& operator-=(const Vector3& v) {
-        x -= v.x;
-        y -= v.y;
-        z -= v.z;
+        x -= v.x; y -= v.y; z -= v.z;
         return *this;
     }
 
     Vector3& operator*=(float scalar) {
-        x *= scalar;
-        y *= scalar;
-        z *= scalar;
+        x *= scalar; y *= scalar; z *= scalar;
         return *this;
-    }
-
-    Vector3& operator/=(float scalar) {
-        if (scalar != 0.0f) {
-            x /= scalar;
-            y /= scalar;
-            z /= scalar;
-        }
-        return *this;
-    }
-
-    // Unary minus (negation)
-    Vector3 operator-() const {
-        return Vector3(-x, -y, -z);
-    }
-
-    // Comparison operators
-    bool operator==(const Vector3& v) const {
-        return x == v.x && y == v.y && z == v.z;
-    }
-
-    bool operator!=(const Vector3& v) const {
-        return !(*this == v);
     }
 
     // Dot product
@@ -95,20 +73,20 @@ public:
         );
     }
 
-    // Magnitude (length) of the vector
+    // Magnitude (length) of vector
     float magnitude() const {
-        return std::sqrt(x * x + y * y + z * z);
+        return sqrtf(x * x + y * y + z * z);
     }
 
-    // Squared magnitude (useful to avoid sqrt in comparisons)
+    // Squared magnitude (avoids sqrt for comparison)
     float magnitudeSquared() const {
         return x * x + y * y + z * z;
     }
 
-    // Normalize the vector (return unit vector)
+    // Normalize vector to unit length
     Vector3 normalized() const {
         float mag = magnitude();
-        if (mag > 0.0f) {
+        if (mag > EPSILON) {
             return *this / mag;
         }
         return Vector3(0, 0, 0);
@@ -117,33 +95,25 @@ public:
     // Normalize in place
     void normalize() {
         float mag = magnitude();
-        if (mag > 0.0f) {
-            *this /= mag;
+        if (mag > EPSILON) {
+            x /= mag;
+            y /= mag;
+            z /= mag;
         }
     }
 
-    // Distance to another vector
-    float distance(const Vector3& v) const {
-        return (*this - v).magnitude();
+    // Distance between two points
+    static float distance(const Vector3& a, const Vector3& b) {
+        return (a - b).magnitude();
     }
 
-    // Squared distance (useful to avoid sqrt in comparisons)
-    float distanceSquared(const Vector3& v) const {
-        return (*this - v).magnitudeSquared();
+    // Linear interpolation
+    static Vector3 lerp(const Vector3& a, const Vector3& b, float t) {
+        return a + (b - a) * t;
     }
 
-    // Length (alias for magnitude)
-    float length() const {
-        return magnitude();
-    }
-
-    // Squared length (alias for magnitudeSquared)
-    float lengthSquared() const {
-        return magnitudeSquared();
+    // Set all components
+    void set(float nx, float ny, float nz) {
+        x = nx; y = ny; z = nz;
     }
 };
-
-// Scalar multiplication from left (scalar * vector)
-inline Vector3 operator*(float scalar, const Vector3& v) {
-    return v * scalar;
-}
