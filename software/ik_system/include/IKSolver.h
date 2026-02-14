@@ -24,6 +24,10 @@ struct LegJoints {
 // 3-DOF Leg Inverse Kinematics Solver
 class LegIK {
 public:
+    // IK solver constants
+    static constexpr float REACH_SAFETY_FACTOR = 0.95f;  // Max reach safety margin
+    static constexpr float ELBOW_REACH_SAFETY = 0.99f;   // Elbow joint reach safety
+    
     // Leg segment lengths (mm)
     float coxaLength;   // l1: shoulder to elbow
     float femurLength;  // l2: elbow to ankle
@@ -61,7 +65,7 @@ public:
         // Check if target is reachable (simplified check)
         float maxReach = coxaLength + femurLength + tibiaLength;
         float targetDist = target.magnitude();
-        if (targetDist > maxReach * 0.95f) {
+        if (targetDist > maxReach * REACH_SAFETY_FACTOR) {
             return false; // Too far
         }
 
@@ -80,7 +84,7 @@ public:
         float d = sqrtf(d_xz * d_xz + target.y * target.y);
 
         // Check if within femur+tibia reach
-        if (d > (femurLength + tibiaLength) * 0.99f || d < fabs(femurLength - tibiaLength)) {
+        if (d > (femurLength + tibiaLength) * ELBOW_REACH_SAFETY || d < fabs(femurLength - tibiaLength)) {
             return false; // Unreachable
         }
 

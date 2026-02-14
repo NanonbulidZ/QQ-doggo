@@ -174,11 +174,11 @@ void loop() {
     float vx, vy;
     controller.getWalkingVelocity(vx, vy);
     float vYaw = controller.getRotationSpeed();
-    float heightDelta = controller.getHeightAdjustment();
+    float heightRate = controller.getHeightAdjustment();  // mm/s adjustment rate
     
     // Update body height
     static float currentHeight = HEIGHT_DEFAULT;
-    currentHeight += heightDelta * deltaTime;
+    currentHeight += heightRate * deltaTime;
     currentHeight = constrain(currentHeight, HEIGHT_MIN, HEIGHT_MAX);
     robot.setBodyPosition(0, 0, currentHeight);
     

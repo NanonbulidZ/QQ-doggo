@@ -13,6 +13,9 @@ class Vector3 {
 public:
     float x, y, z;
 
+    // Epsilon for floating point comparisons
+    static constexpr float EPSILON = 0.0001f;
+
     // Constructors
     Vector3() : x(0), y(0), z(0) {}
     Vector3(float x, float y, float z) : x(x), y(y), z(z) {}
@@ -80,7 +83,7 @@ public:
     // Normalize vector to unit length
     Vector3 normalized() const {
         float mag = magnitude();
-        if (mag > 0.0001f) {
+        if (mag > EPSILON) {
             return *this / mag;
         }
         return Vector3(0, 0, 0);
@@ -89,7 +92,7 @@ public:
     // Normalize in place
     void normalize() {
         float mag = magnitude();
-        if (mag > 0.0001f) {
+        if (mag > EPSILON) {
             x /= mag;
             y /= mag;
             z /= mag;

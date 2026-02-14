@@ -8,6 +8,10 @@
 // Static instance for callbacks
 BluePadController* BluePadController::instance = nullptr;
 
+// Controller input value ranges
+static constexpr float STICK_MAX_VALUE = 512.0f;    // Analog stick maximum raw value
+static constexpr float TRIGGER_MAX_VALUE = 1023.0f; // Trigger maximum raw value
+
 void BluePadController::init() {
     // Store singleton instance for callbacks
     instance = this;
@@ -34,14 +38,14 @@ void BluePadController::update() {
     int ry = gamepad->axisRY();
     
     // Normalize to -1.0 to 1.0
-    input.leftX = applyDeadzone(lx / 512.0f, stickDeadzone);
-    input.leftY = applyDeadzone(ly / 512.0f, stickDeadzone);
-    input.rightX = applyDeadzone(rx / 512.0f, stickDeadzone);
-    input.rightY = applyDeadzone(ry / 512.0f, stickDeadzone);
+    input.leftX = applyDeadzone(lx / STICK_MAX_VALUE, stickDeadzone);
+    input.leftY = applyDeadzone(ly / STICK_MAX_VALUE, stickDeadzone);
+    input.rightX = applyDeadzone(rx / STICK_MAX_VALUE, stickDeadzone);
+    input.rightY = applyDeadzone(ry / STICK_MAX_VALUE, stickDeadzone);
     
     // Read triggers (range: 0 to 1023)
-    input.leftTrigger = applyDeadzone(gamepad->brake() / 1023.0f, triggerDeadzone);
-    input.rightTrigger = applyDeadzone(gamepad->throttle() / 1023.0f, triggerDeadzone);
+    input.leftTrigger = applyDeadzone(gamepad->brake() / TRIGGER_MAX_VALUE, triggerDeadzone);
+    input.rightTrigger = applyDeadzone(gamepad->throttle() / TRIGGER_MAX_VALUE, triggerDeadzone);
     
     // Read D-pad
     input.dpadUp = gamepad->dpad() & 0x01;

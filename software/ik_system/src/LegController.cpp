@@ -5,6 +5,11 @@
 
 #include "../include/LegController.h"
 
+// Gait tuning constants
+static constexpr float YAW_EFFECT_SCALE = 0.5f;      // Scaling for yaw rotation effect on feet
+static constexpr float SWING_STRIDE_SCALE = 0.5f;    // Stride scaling for swing target
+static constexpr float PARABOLA_SCALE = 4.0f;        // Parabola scaling (peaks at stepHeight when progress=0.5)
+
 // Constructor
 LegController::LegController(float length, float width) 
     : bodyLength(length), bodyWidth(width),
@@ -104,7 +109,7 @@ void LegController::updateWalking(float vx, float vy, float vYaw, float deltaTim
         } else {
             // Swing phase: foot lifts and moves forward
             // Calculate swing progress based on which diagonal pair is swinging
-            float swingProgress;
+            float swingProgress = 0;
             if (leg == LEG_FRONT_LEFT || leg == LEG_BACK_RIGHT) {
                 // FL/BR swing in second half (0.5-1.0)
                 swingProgress = (gaitPhase - 0.5f) * 2.0f;
@@ -112,6 +117,10 @@ void LegController::updateWalking(float vx, float vy, float vYaw, float deltaTim
                 // FR/BL swing in first half (0.0-0.5)
                 swingProgress = gaitPhase * 2.0f;
             }
+            // Clamp to valid range as safety measure
+            if (swingProgress < 0) swingProgress = 0;
+            if (swingProgress > 1.0f) swingProgress = 1.0f;
+            
             footPositions[leg] = calcSwingFootPos(legPos, swingProgress);
         }
     }
@@ -161,11 +170,12 @@ void LegController::updateGaitPhase(float deltaTime, float vx, float vy, float v
             
             // Calculate target position at end of swing with rotation effect
             Vector3 legAttach = getLegAttachPoint((LegPosition)leg);
-            Vector3 rotEffect(-legAttach.y * vYaw * 0.5f, legAttach.x * vYaw * 0.5f, 0);
+            Vector3 rotEffect(-legAttach.y * vYaw * YAW_EFFECT_SCALE, 
+                              legAttach.x * vYaw * YAW_EFFECT_SCALE, 0);
             Vector3 velocity(vx, vy, 0);
             
             swingTarget[leg] = defaultFootPositions[leg] + 
-                               (velocity * strideLength + rotEffect) * 0.5f;
+                               (velocity * strideLength + rotEffect) * SWING_STRIDE_SCALE;
         }
     }
 }
@@ -177,7 +187,8 @@ Vector3 LegController::calcStanceFootPos(LegPosition leg, float vx, float vy, fl
     
     // Apply rotation effect (feet move laterally during turn)
     Vector3 legAttach = getLegAttachPoint(leg);
-    Vector3 rotEffect(-legAttach.y * vYaw * 0.5f, legAttach.x * vYaw * 0.5f, 0);
+    Vector3 rotEffect(-legAttach.y * vYaw * YAW_EFFECT_SCALE, 
+                      legAttach.x * vYaw * YAW_EFFECT_SCALE, 0);
     
     Vector3 movement = (velocity + rotEffect) * deltaTime * gaitSpeed * 2.0f;
     
@@ -189,7 +200,7 @@ Vector3 LegController::calcSwingFootPos(LegPosition leg, float swingProgress) {
     Vector3 pos = Vector3::lerp(swingStart[leg], swingTarget[leg], swingProgress);
     
     // Add parabolic height (peaks at middle of swing)
-    float liftHeight = stepHeight * 4.0f * swingProgress * (1.0f - swingProgress);
+    float liftHeight = stepHeight * PARABOLA_SCALE * swingProgress * (1.0f - swingProgress);
     pos.z += liftHeight;
     
     return pos;
