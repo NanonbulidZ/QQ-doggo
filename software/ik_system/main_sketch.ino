@@ -43,6 +43,11 @@ const float STRIDE_LENGTH = 60.0f;  // mm
 const float STEP_HEIGHT = 30.0f;    // mm
 const float GAIT_SPEED = 0.5f;      // 0-1 multiplier
 
+// Body height limits (mm, negative = below body)
+const float HEIGHT_MIN = -150.0f;   // Lowest body position (legs most extended)
+const float HEIGHT_MAX = -80.0f;    // Highest body position (legs most compressed)
+const float HEIGHT_DEFAULT = -120.0f; // Default standing height
+
 // Servo calibration (adjust for your servos)
 const int SERVO_MIN_PULSE = 500;   // microseconds
 const int SERVO_MAX_PULSE = 2500;  // microseconds
@@ -129,7 +134,7 @@ void setup() {
     // Initialize leg controller
     robot.init(COXA_LENGTH, FEMUR_LENGTH, TIBIA_LENGTH);
     robot.setGaitParams(STRIDE_LENGTH, STEP_HEIGHT, GAIT_SPEED);
-    robot.setBodyPosition(0, 0, -120.0f);  // Default height
+    robot.setBodyPosition(0, 0, HEIGHT_DEFAULT);
     Serial.println("Robot controller initialized");
     
     // Initialize BluePad32 controller
@@ -172,9 +177,9 @@ void loop() {
     float heightDelta = controller.getHeightAdjustment();
     
     // Update body height
-    static float currentHeight = -120.0f;
+    static float currentHeight = HEIGHT_DEFAULT;
     currentHeight += heightDelta * deltaTime;
-    currentHeight = constrain(currentHeight, -150.0f, -80.0f);  // Limit height range
+    currentHeight = constrain(currentHeight, HEIGHT_MIN, HEIGHT_MAX);
     robot.setBodyPosition(0, 0, currentHeight);
     
     // Button controls
@@ -183,7 +188,7 @@ void loop() {
     // A button: Reset to standing
     if (input.buttonA) {
         robot.stand();
-        currentHeight = -120.0f;
+        currentHeight = HEIGHT_DEFAULT;
         robot.setBodyPosition(0, 0, currentHeight);
     }
     

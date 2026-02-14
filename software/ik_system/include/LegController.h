@@ -104,6 +104,7 @@ private:
     // Gait state
     float gaitPhase;         // Current phase in gait cycle (0-1)
     GaitPhase legPhases[4];  // Current phase for each leg
+    GaitPhase prevLegPhases[4]; // Previous phase for transition detection
     Vector3 swingStart[4];   // Foot position at start of swing
     Vector3 swingTarget[4];  // Target foot position for swing
 

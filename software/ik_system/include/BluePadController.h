@@ -25,10 +25,10 @@ struct GamepadInput {
     float rightTrigger;  // R2
     
     // D-pad
-    int dpadUp;
-    int dpadDown;
-    int dpadLeft;
-    int dpadRight;
+    bool dpadUp;
+    bool dpadDown;
+    bool dpadLeft;
+    bool dpadRight;
     
     // Face buttons
     bool buttonA;
@@ -47,7 +47,7 @@ struct GamepadInput {
     
     GamepadInput() : leftX(0), leftY(0), rightX(0), rightY(0),
                      leftTrigger(0), rightTrigger(0),
-                     dpadUp(0), dpadDown(0), dpadLeft(0), dpadRight(0),
+                     dpadUp(false), dpadDown(false), dpadLeft(false), dpadRight(false),
                      buttonA(false), buttonB(false), buttonX(false), buttonY(false),
                      buttonL1(false), buttonR1(false),
                      buttonPlus(false), buttonMinus(false), buttonHome(false) {}

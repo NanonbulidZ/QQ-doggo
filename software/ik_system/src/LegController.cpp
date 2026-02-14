@@ -18,6 +18,11 @@ LegController::LegController(float length, float width)
     legPhases[LEG_FRONT_RIGHT] = PHASE_SWING;
     legPhases[LEG_BACK_LEFT] = PHASE_SWING;
     legPhases[LEG_BACK_RIGHT] = PHASE_STANCE;
+    
+    // Initialize previous phases
+    for (int i = 0; i < 4; i++) {
+        prevLegPhases[i] = legPhases[i];
+    }
 }
 
 void LegController::init(float coxaLen, float femurLen, float tibiaLen) {
@@ -98,7 +103,15 @@ void LegController::updateWalking(float vx, float vy, float vYaw, float deltaTim
             footPositions[leg] = calcStanceFootPos(legPos, vx, vy, vYaw, deltaTime);
         } else {
             // Swing phase: foot lifts and moves forward
-            float swingProgress = (gaitPhase < 0.5f) ? gaitPhase * 2.0f : (gaitPhase - 0.5f) * 2.0f;
+            // Calculate swing progress based on which diagonal pair is swinging
+            float swingProgress;
+            if (leg == LEG_FRONT_LEFT || leg == LEG_BACK_RIGHT) {
+                // FL/BR swing in second half (0.5-1.0)
+                swingProgress = (gaitPhase - 0.5f) * 2.0f;
+            } else {
+                // FR/BL swing in first half (0.0-0.5)
+                swingProgress = gaitPhase * 2.0f;
+            }
             footPositions[leg] = calcSwingFootPos(legPos, swingProgress);
         }
     }
@@ -112,6 +125,11 @@ void LegController::updateWalking(float vx, float vy, float vYaw, float deltaTim
 }
 
 void LegController::updateGaitPhase(float deltaTime, float vx, float vy, float vYaw) {
+    // Store previous phases for transition detection
+    for (int i = 0; i < 4; i++) {
+        prevLegPhases[i] = legPhases[i];
+    }
+    
     // Advance gait phase
     gaitPhase += gaitFrequency * gaitSpeed * deltaTime;
     
@@ -135,20 +153,23 @@ void LegController::updateGaitPhase(float deltaTime, float vx, float vy, float v
         legPhases[LEG_BACK_RIGHT] = PHASE_SWING;
     }
     
-    // Store swing start positions when entering swing phase
+    // Detect phase transitions and update swing targets
     for (int leg = 0; leg < 4; leg++) {
-        bool isSwingStart = (leg == LEG_FRONT_LEFT || leg == LEG_BACK_RIGHT) 
-                            ? (gaitPhase >= 0.5f && gaitPhase < 0.52f)
-                            : (gaitPhase >= 0.0f && gaitPhase < 0.02f);
-        
-        if (isSwingStart) {
+        // Check if leg just transitioned from stance to swing
+        if (prevLegPhases[leg] == PHASE_STANCE && legPhases[leg] == PHASE_SWING) {
             swingStart[leg] = footPositions[leg];
-            // Calculate target position at end of swing
+            
+            // Calculate target position at end of swing with rotation effect
+            Vector3 legAttach = getLegAttachPoint((LegPosition)leg);
+            Vector3 rotEffect(-legAttach.y * vYaw * 0.5f, legAttach.x * vYaw * 0.5f, 0);
+            Vector3 velocity(vx, vy, 0);
+            
             swingTarget[leg] = defaultFootPositions[leg] + 
-                               Vector3(vx, vy, 0) * (strideLength * 0.5f);
+                               (velocity * strideLength + rotEffect) * 0.5f;
         }
     }
 }
+
 
 Vector3 LegController::calcStanceFootPos(LegPosition leg, float vx, float vy, float vYaw, float deltaTime) {
     // During stance, foot position moves backward relative to body
